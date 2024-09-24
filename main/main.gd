@@ -6,13 +6,35 @@ extends Node3D
 
 @export var uv_height = 128
 @export var uv_width = 128
+@export var quadmesh_grid_x = 2
+@export var quadmesh_grid_z = 2
+var quadmesh_size : Vector2
 var uv_map : Image
+
+@onready var node_chunk_collection = $ChunkCollection
 
 
 
 # VIRTUALS ####################################################
 func _ready() -> void:
+	# Packs the chunk scene
+	var _scene_chunk = load("res://landscape/chunk.tscn")
+	
+	# retrieve chunk scene size
+	var _inst_size_chunk = _scene_chunk.instantiate()
+	quadmesh_size = _inst_size_chunk.mesh.size
+	_inst_size_chunk.queue_free()
+	
+	# geenerate noise UV
 	uv_map = create_uv_map()
+	
+	# dynamically add, map, and adjust vertex of QuadMesh grid
+	for _x in quadmesh_grid_x:
+		for _z in quadmesh_grid_z:
+			print("QuadMesh %s, %s" % [_x, _z])
+			var _instance_chunk = _scene_chunk.instantiate()
+			_instance_chunk.position = Vector3(_x*quadmesh_size.x, 0, _z*quadmesh_size.y)
+			node_chunk_collection.add_child(_instance_chunk)
 
 
 
@@ -32,7 +54,6 @@ func create_uv_map() -> Image:
 	_noise.fractal_ping_pong_strength = 16
 	# /NOISE CONFIGS
 	
-	var _noise_image = _noise.get_image(uv_height,uv_width)
-	var _image = Image.create(uv_height,uv_width,false,Image.FORMAT_RGBA8)
+	var _noise_image = _noise.get_seamless_image(uv_height,uv_width)
 	
-	return _image
+	return _noise_image

@@ -1,6 +1,31 @@
-[gd_scene load_steps=2 format=3 uid="uid://dr4nc563hmw14"]
+[gd_scene load_steps=5 format=3 uid="uid://dr4nc563hmw14"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_ue1d5"]
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_h32fs"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_pyem1"]
+sky_material = SubResource("ProceduralSkyMaterial_h32fs")
+
+[sub_resource type="Environment" id="Environment_aqu8e"]
+background_mode = 2
+sky = SubResource("Sky_pyem1")
+tonemap_mode = 2
+glow_enabled = true
+
 [node name="Main" type="Node3D"]
 script = ExtResource("1_ue1d5")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_aqu8e")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.599359, 0.80048, 0, -0.80048, 0.599359, -7.62939e-06, 4.47239, 3.44633)
+
+[node name="ChunkCollection" type="Node3D" parent="."]
