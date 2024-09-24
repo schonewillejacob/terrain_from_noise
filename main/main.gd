@@ -27,15 +27,18 @@ func _ready() -> void:
 	quadmesh_size = _inst_size_chunk.mesh.size
 	_inst_size_chunk.queue_free()
 	
-	# geenerate noise UV
+	# generate noise UV
 	uv_map = create_uv_map()
 	
 	# dynamically add, map, and adjust vertex of QuadMesh grid
 	for _x in quadmesh_grid_x:
 		for _z in quadmesh_grid_z:
-			print("QuadMesh %s, %s" % [_x, _z])
+			print("QuadMesh %s, %s. Raising by Vertex matrix: <placeholder>" % [_x, _z])
 			var _instance_chunk = _scene_chunk.instantiate()
+			
+			#_instance_chunk.mesh.uv = Vector2(_x, _z)
 			_instance_chunk.position = Vector3(_x*quadmesh_size.x, 0, _z*quadmesh_size.y)
+			
 			node_chunk_collection.add_child(_instance_chunk)
 	
 	# adjust camera position dynamically, position preview Sprite3D in view.
@@ -63,6 +66,6 @@ func create_uv_map() -> Image:
 	_noise.fractal_ping_pong_strength = 16
 	# /NOISE CONFIGS
 	
-	var _noise_image = _noise.get_seamless_image(uv_height,uv_width)
+	var _noise_image = _noise.get_image(uv_height,uv_width) # no point in this being seamless, as the heightmap won't be tiled.
 	
 	return _noise_image
