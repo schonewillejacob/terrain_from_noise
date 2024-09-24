@@ -13,6 +13,7 @@ var uv_map : Image
 
 @onready var node_chunk_collection = $ChunkCollection
 @onready var node_camera = $Camera3D
+@onready var node_noise_preview = $UI/NoisePreview
 
 
 
@@ -37,11 +38,12 @@ func _ready() -> void:
 			_instance_chunk.position = Vector3(_x*quadmesh_size.x, 0, _z*quadmesh_size.y)
 			node_chunk_collection.add_child(_instance_chunk)
 	
-	# adjust camera position dynamically
-	var _camera_pos_x = 0.5*(quadmesh_size.x * quadmesh_grid_x) - (quadmesh_size.x/2)
+	# adjust camera position dynamically, position preview Sprite3D in view.
+	var _camera_pos_x = (0.5 * quadmesh_size.x * quadmesh_grid_x) - (0.5 * quadmesh_size.x)
 	var _camera_pos_y = node_camera.position.y
 	var _camera_pos_z = quadmesh_size.y * quadmesh_grid_z
 	node_camera.position = Vector3(_camera_pos_x, _camera_pos_y, _camera_pos_z)
+	node_noise_preview.texture = ImageTexture.create_from_image(uv_map)
 
 
 
