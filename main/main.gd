@@ -2,12 +2,38 @@ extends Node3D
 # creates UV map for noise texture
 # orchestrates vertex mapping on QuadMesh grid
 
+
+
+@export var uv_height = 128
+@export var uv_width = 128
 var uv_map : FastNoiseLite
 
+
+
+# VIRTUALS ####################################################
 func _ready() -> void:
-	var uv_map_image = FastNoiseLite.new()
-	uv_map.cellular_distance_function = FastNoiseLite.DISTANCE_EUCLIDEAN_SQUARED
-	uv_map
+	uv_map = create_uv_map()
+	set_quadmesh_vertex_heights(uv_map)
+
+
+
+# HELPERS #####################################################
+func create_uv_map() -> Image:
+	# goal: long, thin cells.
+	var _noise = FastNoiseLite.new()
 	
+	# NOISE CONFIGS
+	_noise.cellular_distance_function = 2
 	
-	pass
+	_noise.fractal_type = 3
+	_noise.fractal_gain = 3
+	_noise.fractal_lacunarity = 1
+	_noise.fractal_gain = .005
+	
+	_noise.fractal_ping_pong_strength = 16
+	# /NOISE CONFIGS
+	
+	var _noise_image = _noise.get_image(uv_height,uv_width)
+	var _image = Image.create(uv_height,uv_width,false,Image.FORMAT_RGBA8)
+	
+	return _image
