@@ -6,14 +6,13 @@ extends Node3D
 
 @export var uv_height = 128
 @export var uv_width = 128
-var uv_map : FastNoiseLite
+var uv_map : Image
 
 
 
 # VIRTUALS ####################################################
 func _ready() -> void:
 	uv_map = create_uv_map()
-	set_quadmesh_vertex_heights(uv_map)
 
 
 
