@@ -4,14 +4,13 @@ extends Node3D
 
 
 
-@export var uv_height = 128
-@export var uv_width = 128
-@export var quadmesh_grid_x = 2
-@export var quadmesh_grid_z = 2
+@export var noise_texture_height = 128
+@export var noise_texture_width = 128
+@export var quadmesh_grid_side_length = 2
 var quadmesh_size : Vector2
-var uv_map : Image
+var height_map : Image
 
-@onready var node_chunk_collection = $ChunkCollection
+@onready var node_chunk_collection = $Landscape
 @onready var node_camera = $Camera3D
 @onready var node_noise_preview = $UI/NoisePreview
 
@@ -19,41 +18,31 @@ var uv_map : Image
 
 # VIRTUALS ####################################################
 func _ready() -> void:
-	# Packs the chunk scene
-	var _scene_chunk = load("res://landscape/chunk.tscn")
-	
-	# retrieve chunk scene size
-	var _inst_size_chunk = _scene_chunk.instantiate()
-	quadmesh_size = _inst_size_chunk.mesh.size
-	_inst_size_chunk.queue_free()
-	
 	# generate noise UV
-	uv_map = create_uv_map()
+	height_map = create_height_map()
+	
+	# use a two-row approach to set vertex heights.
+	#	the length of these row should be the grid side-length + 1
+	var _vertex_row_even = []
+	var _vertex_row_odd = []
 	
 	# dynamically add, map, and adjust vertex of QuadMesh grid
-	for _x in quadmesh_grid_x:
-		for _z in quadmesh_grid_z:
+	for _x in quadmesh_grid_side_length:
+		for _z in quadmesh_grid_side_length:
 			print("QuadMesh %s, %s. Raising by Vertex matrix: <placeholder>" % [_x, _z])
-			var _instance_chunk = _scene_chunk.instantiate()
 			
-			#_instance_chunk.mesh.uv = Vector2(_x, _z)
-			_instance_chunk.position = Vector3(_x*quadmesh_size.x, 0, _z*quadmesh_size.y)
-			
-			node_chunk_collection.add_child(_instance_chunk)
 	
-	# adjust camera position dynamically, position preview Sprite3D in view.
-	var _camera_pos_x = (0.5 * quadmesh_size.x * quadmesh_grid_x) - (0.5 * quadmesh_size.x)
-	var _camera_pos_y = node_camera.position.y
-	var _camera_pos_z = quadmesh_size.y * quadmesh_grid_z
-	node_camera.position = Vector3(_camera_pos_x, _camera_pos_y, _camera_pos_z)
-	node_noise_preview.texture = ImageTexture.create_from_image(uv_map)
+	# set noise preview
+	node_noise_preview.texture = ImageTexture.create_from_image(height_map)
 
 
 
 # HELPERS #####################################################
-func create_uv_map() -> Image:
+func create_height_map() -> Image:
 	# goal: long, thin cells.
 	var _noise = FastNoiseLite.new()
+	randomize()
+	_noise.seed = randf() * 10_000_000 # set seed to a random integer from 0 - 9,999,999
 	
 	# NOISE CONFIGS
 	_noise.cellular_distance_function = 2
@@ -66,6 +55,10 @@ func create_uv_map() -> Image:
 	_noise.fractal_ping_pong_strength = 16
 	# /NOISE CONFIGS
 	
-	var _noise_image = _noise.get_image(uv_height,uv_width) # no point in this being seamless, as the heightmap won't be tiled.
+	var _noise_image = _noise.get_image(noise_texture_height,noise_texture_width) # no point in this being seamless, as the heightmap won't be tiled.
 	
 	return _noise_image
+
+func set_row_from_heightmap():
+	# get seed
+	pass
