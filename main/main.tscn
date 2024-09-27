@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dr4nc563hmw14"]
+[gd_scene load_steps=9 format=3 uid="uid://dr4nc563hmw14"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_ue1d5"]
 [ext_resource type="Script" path="res://main/camera_scroll_zoom.gd" id="2_2rx0p"]
@@ -16,6 +16,16 @@ sky = SubResource("Sky_pyem1")
 tonemap_mode = 2
 glow_enabled = true
 
+[sub_resource type="Animation" id="Animation_xk2cm"]
+length = 0.001
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CameraRig")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1)
+
 [sub_resource type="Animation" id="Animation_fclff"]
 resource_name = "procession"
 length = 30.0
@@ -28,25 +38,11 @@ tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = PackedFloat32Array(10, 1, 0, 0.258819, 0, 0.965926, 20, 1, 0, -0.258819, 0, 0.965926)
 
-[sub_resource type="Animation" id="Animation_xk2cm"]
-length = 0.001
-tracks/0/type = "rotation_3d"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("CameraRig")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1)
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_c47pk"]
 _data = {
 "RESET": SubResource("Animation_xk2cm"),
 "procession": SubResource("Animation_fclff")
 }
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_10n1y"]
-radius = 32.0
-height = 64.0
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_ue1d5")
@@ -88,7 +84,3 @@ libraries = {
 "": SubResource("AnimationLibrary_c47pk")
 }
 autoplay = "procession"
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 128, 20, 100)
-mesh = SubResource("CapsuleMesh_10n1y")

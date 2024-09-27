@@ -4,7 +4,7 @@ extends Node3D
 
 
 
-@export var noise_texture_side_length : int = 256
+@export var noise_texture_side_length : int = 64
 @export var quadmesh_grid_side_length : int = 256
 var quadmesh_size : Vector2
 var height_map : Image
@@ -17,13 +17,6 @@ var y_scale : float = 10.0
 
 # VIRTUALS ####################################################
 func _ready() -> void:
-	## testing purposes: create red gradient
-	#height_map = Image.create_empty(noise_texture_side_length,noise_texture_side_length, false, Image.FORMAT_RG8) # all white image for testing purposes
-	#for _x in noise_texture_side_length:
-		#for _y in noise_texture_side_length:
-			#var _target : float = float(_x) / float(noise_texture_side_length)
-			#height_map.set_pixel(_x,_y,Color(_target,0,0,1))
-	
 	# generate noise UV
 	height_map = create_height_map()
 	
@@ -64,7 +57,7 @@ func create_height_map() -> Image:
 	_noise.fractal_lacunarity = 1
 	_noise.fractal_gain = .005
 	
-	_noise.fractal_ping_pong_strength = 2
+	_noise.fractal_ping_pong_strength = 1
 	# /NOISE CONFIGS
 	
 	var _noise_image = _noise.get_image(noise_texture_side_length,noise_texture_side_length) # no point in this being seamless, as the heightmap won't be tiled.
@@ -103,7 +96,7 @@ func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position
 		
 		_land.mesh = _mesh
 		var _height_colour_material = StandardMaterial3D.new()
-		_height_colour_material.albedo_color = Color(top_row[_x],.5,.6,1)
+		_height_colour_material.albedo_color = Color(top_row[_x],top_row[_x],top_row[_x],1)
 		
 		_land.mesh.surface_set_material(0,_height_colour_material)
 		_land.position = Vector3(_x,0,z_grid_position)
@@ -112,10 +105,14 @@ func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position
 	
 func set_row_heights_from_heightmap(pos_z : int) -> Array:
 	var _row_heights : Array
+	
 	for _x_position in (quadmesh_grid_side_length + 1):
 		var _x_target = float(_x_position)/float(quadmesh_grid_side_length) * float(noise_texture_side_length)
-		var _z_target = clamp(pos_z-1, 0, noise_texture_side_length-1)
-		_x_target = clamp(_x_target-1,0,noise_texture_side_length-1)
-		_row_heights.append(height_map.get_pixel(_x_target, _z_target).r) # returns a float of the pixel's red channel, from 0-1
+		_x_target = clamp(_x_target,0,noise_texture_side_length-1)
 		
+		var _z_target = float(pos_z)/float(quadmesh_grid_side_length) * float(noise_texture_side_length)
+		_z_target = clamp(_z_target,0,noise_texture_side_length-1)
+		
+		_row_heights.append(height_map.get_pixel(_x_target, _z_target).r) # returns a float of the pixel's red channel, from 0-1
+	
 	return _row_heights
