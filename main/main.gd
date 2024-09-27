@@ -4,13 +4,13 @@ extends Node3D
 
 
 
-@export var noise_texture_side_length = 128
-@export var quadmesh_grid_side_length = 2
+@export var noise_texture_side_length : int = 256
+@export var quadmesh_grid_side_length : int = 256
 var quadmesh_size : Vector2
 var height_map : Image
+var y_scale : float = 10.0
 
 @onready var node_landscape = $Landscape
-@onready var node_camera = $Camera3D
 @onready var node_noise_preview = $UI/NoisePreview
 
 
@@ -79,16 +79,16 @@ func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position
 		_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 		# vertex 0,0 = bottom-left
 		_surface_tool.set_uv( Vector2(0, 0) )
-		_surface_tool.add_vertex( Vector3(0, bottom_row[_x], 0) ) 
+		_surface_tool.add_vertex( Vector3(0, bottom_row[_x] * y_scale, 0) ) 
 		# vertex 1,0 = bottom-right
 		_surface_tool.set_uv( Vector2(1, 0) )
-		_surface_tool.add_vertex( Vector3(1, bottom_row[_x+1], 0) ) 
+		_surface_tool.add_vertex( Vector3(1, bottom_row[_x+1] * y_scale, 0) ) 
 		# vertex 1,1 = top-right
 		_surface_tool.set_uv( Vector2(1, 1) )
-		_surface_tool.add_vertex( Vector3(1, top_row[_x+1], 1) ) 
+		_surface_tool.add_vertex( Vector3(1, top_row[_x+1] * y_scale, 1) ) 
 		# vertex 0,1 = top-left
 		_surface_tool.set_uv( Vector2(0, 1) )
-		_surface_tool.add_vertex( Vector3(0, top_row[_x], 1) ) 
+		_surface_tool.add_vertex( Vector3(0, top_row[_x] * y_scale, 1) ) 
 		# make the fir_surface_tool triangle
 		_surface_tool.add_index(0) 
 		_surface_tool.add_index(1)
@@ -103,7 +103,7 @@ func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position
 		
 		_land.mesh = _mesh
 		var _height_colour_material = StandardMaterial3D.new()
-		_height_colour_material.albedo_color = Color(top_row[_x],0,0,1)
+		_height_colour_material.albedo_color = Color(top_row[_x],.5,.6,1)
 		
 		_land.mesh.surface_set_material(0,_height_colour_material)
 		_land.position = Vector3(_x,0,z_grid_position)
@@ -114,7 +114,8 @@ func set_row_heights_from_heightmap(pos_z : int) -> Array:
 	var _row_heights : Array
 	for _x_position in (quadmesh_grid_side_length + 1):
 		var _x_target = float(_x_position)/float(quadmesh_grid_side_length) * float(noise_texture_side_length)
+		var _z_target = clamp(pos_z-1, 0, noise_texture_side_length-1)
 		_x_target = clamp(_x_target-1,0,noise_texture_side_length-1)
-		_row_heights.append(height_map.get_pixel(_x_target, pos_z).r) # returns a float of the pixel's red channel, from 0-1
+		_row_heights.append(height_map.get_pixel(_x_target, _z_target).r) # returns a float of the pixel's red channel, from 0-1
 		
 	return _row_heights
