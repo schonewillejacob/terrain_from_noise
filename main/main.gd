@@ -1,15 +1,18 @@
 extends Node3D
 # creates UV map for noise texture
-# orchestrates vertex mapping on QuadMesh grid
+# orchestrates vertex mapping
 
 
 
-@export var quadmesh_grid_side_length : int = 2
+@export var quadmesh_grid_side_length : int = 256
 var quadmesh_size : Vector2
 var height_map : Image
-var y_scale : float = 1.0
+var y_scale : float = 2.0
+var darkness_scale : float = 4.0
 
-@export var noise_texture_side_length : int = 64
+# the noise texture is set to always be a multiple of quadmesh_grid_side_length0,
+#	to prevent floating point errors causing visual artefacts
+var noise_texture_side_length : int = quadmesh_grid_side_length * 2
 var landscape_material : StandardMaterial3D
 
 @onready var node_landscape = $Landscape
@@ -36,22 +39,28 @@ func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position
 	_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
 	for _x in quadmesh_grid_side_length:
+		# as the colour approaches ~0.2, things just become white.
+		#	this tweak both saves computation time and embellishes noise texture
+		var darkened_colours_00 = bottom_row[_x] / darkness_scale
+		var darkened_colours_10 = bottom_row[_x+1] / darkness_scale
+		var darkened_colours_11 = top_row[_x+1] / darkness_scale
+		var darkened_colours_01 = top_row[_x] / darkness_scale
 		
 		# vertex0 0,0 = bottom-left
 		_surface_tool.set_uv( Vector2(0, 0) )
-		_surface_tool.set_color(Color(bottom_row[_x],bottom_row[_x],bottom_row[_x],1))
+		_surface_tool.set_color(Color(darkened_colours_00,darkened_colours_00,darkened_colours_00,1))
 		_surface_tool.add_vertex( Vector3(_x, bottom_row[_x] * y_scale, z_grid_position) ) 
 		# vertex 1,0 = bottom-right
 		_surface_tool.set_uv( Vector2(1, 0) )
-		_surface_tool.set_color(Color(bottom_row[_x+1],bottom_row[_x+1],bottom_row[_x+1],1))
+		_surface_tool.set_color(Color(darkened_colours_10,darkened_colours_10,darkened_colours_10,1))
 		_surface_tool.add_vertex( Vector3(_x+1, bottom_row[_x+1] * y_scale, z_grid_position) ) 
 		# vertex 1,1 = top-right
 		_surface_tool.set_uv( Vector2(1, 1) )
-		_surface_tool.set_color(Color(top_row[_x+1],top_row[_x+1],top_row[_x+1],1))
+		_surface_tool.set_color(Color(darkened_colours_11,darkened_colours_11,darkened_colours_11,1))
 		_surface_tool.add_vertex( Vector3(_x+1, top_row[_x+1] * y_scale, z_grid_position+1) ) 
 		# vertex 0,1 = top-left
 		_surface_tool.set_uv( Vector2(0, 1) )
-		_surface_tool.set_color(Color(top_row[_x],top_row[_x],top_row[_x],1))
+		_surface_tool.set_color(Color(darkened_colours_01,darkened_colours_01,darkened_colours_01,1))
 		_surface_tool.add_vertex( Vector3(_x, top_row[_x] * y_scale, z_grid_position+1) ) 
 		
 		_column_index += 4
@@ -74,6 +83,8 @@ func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position
 
 func create_height_map() -> Image:
 	# goal: long, thin cells.
+	
+	# randomized noise Image
 	var _noise = FastNoiseLite.new()
 	randomize()
 	_noise.seed = randf() * 10_000_000 # set seed to a random integer from 0 - 9,999,999
