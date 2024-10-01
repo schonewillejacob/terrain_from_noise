@@ -8,7 +8,7 @@ extends Node3D
 @export var quadmesh_grid_side_length : int = 256
 var quadmesh_size : Vector2
 var height_map : Image
-var y_scale : float = 10.0
+var y_scale : float = 1
 
 @onready var node_landscape = $Landscape
 @onready var node_noise_preview = $UI/NoisePreview
@@ -17,53 +17,11 @@ var y_scale : float = 10.0
 
 # VIRTUALS ####################################################
 func _ready() -> void:
-	# generate noise UV
-	height_map = create_height_map()
-	
-	# use a two-row approach to set vertex heights.
-	#	the length of each row should be the grid side-length + 1
-	#	keeping rows in memory saves computation time row-to-row
-	#	having only two saves memory
-	var _vertex_row_even = set_row_heights_from_heightmap(0)
-	var _vertex_row_odd = []
-	
-	# dynamically add, map, and adjust vertex of QuadMesh grid
-	for _z in quadmesh_grid_side_length:
-		if(_z % 2 == 0):
-			_vertex_row_odd = set_row_heights_from_heightmap(_z+1)
-			add_landscape_quad_row(_vertex_row_odd, _vertex_row_even, _z)
-		else:
-			_vertex_row_even = set_row_heights_from_heightmap(_z+1)
-			add_landscape_quad_row(_vertex_row_even, _vertex_row_odd, _z)
-		
-	
-	# set noise preview
-	node_noise_preview.texture = ImageTexture.create_from_image(height_map)
+	generate_terrain()
 
 
 
 # HELPERS #####################################################
-func create_height_map() -> Image:
-	# goal: long, thin cells.
-	var _noise = FastNoiseLite.new()
-	randomize()
-	_noise.seed = randf() * 10_000_000 # set seed to a random integer from 0 - 9,999,999
-	
-	# NOISE CONFIGS
-	_noise.cellular_distance_function = 2
-	
-	_noise.fractal_type = 3
-	_noise.fractal_gain = 3
-	_noise.fractal_lacunarity = 1
-	_noise.fractal_gain = .005
-	
-	_noise.fractal_ping_pong_strength = 1
-	# /NOISE CONFIGS
-	
-	var _noise_image = _noise.get_image(noise_texture_side_length,noise_texture_side_length) # no point in this being seamless, as the heightmap won't be tiled.
-	
-	return _noise_image
-
 func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position : int) -> void:
 	for _x in quadmesh_grid_side_length:
 		var _land = MeshInstance3D.new()
@@ -102,7 +60,56 @@ func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position
 		_land.position = Vector3(_x,0,z_grid_position)
 		
 		node_landscape.add_child(_land)
+
+func create_height_map() -> Image:
+	# goal: long, thin cells.
+	var _noise = FastNoiseLite.new()
+	randomize()
+	_noise.seed = randf() * 10_000_000 # set seed to a random integer from 0 - 9,999,999
 	
+	# NOISE CONFIGS
+	_noise.cellular_distance_function = 2
+	
+	_noise.fractal_type = 3
+	_noise.fractal_gain = 3
+	_noise.fractal_lacunarity = 1
+	_noise.fractal_gain = .005
+	
+	_noise.fractal_ping_pong_strength = 1
+	# /NOISE CONFIGS
+	
+	var _noise_image = _noise.get_image(noise_texture_side_length,noise_texture_side_length) # no point in this being seamless, as the heightmap won't be tiled.
+	
+	return _noise_image
+
+func generate_terrain() -> void:
+	# generate noise UV
+	height_map = create_height_map()
+	
+	# use a two-row approach to set vertex heights.
+	#	the length of each row should be the grid side-length + 1
+	#	keeping rows in memory saves computation time row-to-row
+	#	having only two saves memory
+	var _vertex_row_even = set_row_heights_from_heightmap(0)
+	var _vertex_row_odd = []
+	
+	# dynamically add, map, and adjust vertex of QuadMesh grid
+	for _z in quadmesh_grid_side_length:
+		if(_z % 2 == 0):
+			_vertex_row_odd = set_row_heights_from_heightmap(_z+1)
+			add_landscape_quad_row(_vertex_row_odd, _vertex_row_even, _z)
+		else:
+			_vertex_row_even = set_row_heights_from_heightmap(_z+1)
+			add_landscape_quad_row(_vertex_row_even, _vertex_row_odd, _z)
+		
+	
+	# set noise preview
+	node_noise_preview.texture = ImageTexture.create_from_image(height_map)
+
+func _on_generate():
+	
+	generate_terrain()
+
 func set_row_heights_from_heightmap(pos_z : int) -> Array:
 	var _row_heights : Array
 	

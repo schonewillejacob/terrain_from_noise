@@ -62,12 +62,42 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="NoisePreview" type="TextureRect" parent="UI"]
+[node name="GenerateUI" type="VBoxContainer" parent="UI"]
+custom_minimum_size = Vector2(32, 200)
 layout_mode = 0
-offset_right = 400.0
-offset_bottom = 266.0
-size_flags_vertical = 3
-stretch_mode = 2
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="NoisePreview" type="TextureRect" parent="UI/GenerateUI"]
+layout_mode = 2
+
+[node name="GridSideLengthContainer" type="HBoxContainer" parent="UI/GenerateUI"]
+layout_mode = 2
+
+[node name="GridLabel" type="RichTextLabel" parent="UI/GenerateUI/GridSideLengthContainer"]
+layout_mode = 2
+text = "Grid Side Length"
+
+[node name="GridSideLength" type="TextEdit" parent="UI/GenerateUI/GridSideLengthContainer"]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+text = "0"
+
+[node name="TextureSideLengthContainer" type="HBoxContainer" parent="UI/GenerateUI"]
+layout_mode = 2
+
+[node name="TextureLabel" type="RichTextLabel" parent="UI/GenerateUI/TextureSideLengthContainer"]
+layout_mode = 2
+text = "Texture Side Length"
+
+[node name="TextureSideLength" type="TextEdit" parent="UI/GenerateUI/TextureSideLengthContainer"]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+text = "0"
+
+[node name="Generate" type="Button" parent="UI/GenerateUI"]
+layout_mode = 2
+text = "Generate"
 
 [node name="CameraRig" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 128, 0, 128)
