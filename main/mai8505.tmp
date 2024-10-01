@@ -1,0 +1,102 @@
+[gd_scene load_steps=9 format=3 uid="uid://dr4nc563hmw14"]
+
+[ext_resource type="Script" path="res://main/main.gd" id="1_ue1d5"]
+[ext_resource type="Script" path="res://main/camera_scroll_zoom.gd" id="2_2rx0p"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_h32fs"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_pyem1"]
+sky_material = SubResource("ProceduralSkyMaterial_h32fs")
+
+[sub_resource type="Environment" id="Environment_aqu8e"]
+background_mode = 2
+sky = SubResource("Sky_pyem1")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="Animation" id="Animation_xk2cm"]
+length = 0.001
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CameraRig")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1)
+
+[sub_resource type="Animation" id="Animation_fclff"]
+resource_name = "procession"
+length = 30.0
+loop_mode = 1
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CameraRig")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(10, 1, 0, 0.258819, 0, 0.965926, 20, 1, 0, -0.258819, 0, 0.965926)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_c47pk"]
+_data = {
+"RESET": SubResource("Animation_xk2cm"),
+"procession": SubResource("Animation_fclff")
+}
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_ue1d5")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_aqu8e")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Landscape" type="Node3D" parent="."]
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
+custom_minimum_size = Vector2(32, 200)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="NoisePreview" type="TextureRect" parent="UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="GridSideLength" type="TextEdit" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+text = "Grid Side Length"
+
+[node name="TextureSideLength" type="TextEdit" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+text = "Texture Side Length"
+
+[node name="Generate" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "Generate"
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 128, 0, 128)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, -0.000114441, 183.71, 240.593)
+current = true
+fov = 90.0
+script = ExtResource("2_2rx0p")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CameraRig"]
+root_node = NodePath("../..")
+libraries = {
+"": SubResource("AnimationLibrary_c47pk")
+}
+autoplay = "procession"
