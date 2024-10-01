@@ -4,6 +4,14 @@ var SCROLL_FACTOR = Vector3(0,1,1)
 var SHIFT_FACTOR = 5.0
 var shift_flag = false
 
+var PERSPECTIVE_SCALES = {"SMALL":Vector3(0,0,0), "LARGE":Vector3(128,0,128)}
+@onready var node_animation_player = $"../AnimationPlayer"
+
+# VIRTUALS ####################################################
+func _ready() -> void:
+	pass
+	#position = PERSPECTIVE_SCALES["SMALL"]
+
 # Called when the node enters the scene tree for the first time.
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
@@ -11,6 +19,14 @@ func _input(event: InputEvent) -> void:
 			shift_flag = true
 		if event.is_action_released("ui_accept"):
 			shift_flag = false
+		if event.is_action_pressed("ui_down"):
+			projection = 1 # orthoganal
+			rotation_degrees.x = -90
+			node_animation_player.pause()
+		if event.is_action_released("ui_down"):
+			projection = 0 # perspective
+			rotation_degrees.x = -45
+			node_animation_player.play()
 	
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:

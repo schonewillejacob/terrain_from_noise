@@ -4,11 +4,13 @@ extends Node3D
 
 
 
-@export var noise_texture_side_length : int = 64
-@export var quadmesh_grid_side_length : int = 256
+@export var quadmesh_grid_side_length : int = 2
 var quadmesh_size : Vector2
 var height_map : Image
-var y_scale : float = 1
+var y_scale : float = 1.0
+
+@export var noise_texture_side_length : int = 64
+var landscape_material : StandardMaterial3D
 
 @onready var node_landscape = $Landscape
 @onready var node_noise_preview = $UI/NoisePreview
@@ -17,49 +19,58 @@ var y_scale : float = 1
 
 # VIRTUALS ####################################################
 func _ready() -> void:
+	landscape_material = StandardMaterial3D.new()
+	landscape_material.vertex_color_use_as_albedo = true
+	
 	generate_terrain()
 
 
 
 # HELPERS #####################################################
 func add_landscape_quad_row(top_row : Array, bottom_row : Array, z_grid_position : int) -> void:
+	var _land = MeshInstance3D.new()
+	var _surface_tool = SurfaceTool.new()
+	var _row_offset : float = float(z_grid_position) * float(quadmesh_grid_side_length)
+	var _column_index : int = 0
+	
+	_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	
 	for _x in quadmesh_grid_side_length:
-		var _land = MeshInstance3D.new()
-		var _surface_tool = SurfaceTool.new()
 		
-		_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-		# vertex 0,0 = bottom-left
+		# vertex0 0,0 = bottom-left
 		_surface_tool.set_uv( Vector2(0, 0) )
-		_surface_tool.add_vertex( Vector3(0, bottom_row[_x] * y_scale, 0) ) 
+		_surface_tool.set_color(Color(bottom_row[_x],bottom_row[_x],bottom_row[_x],1))
+		_surface_tool.add_vertex( Vector3(_x, bottom_row[_x] * y_scale, z_grid_position) ) 
 		# vertex 1,0 = bottom-right
 		_surface_tool.set_uv( Vector2(1, 0) )
-		_surface_tool.add_vertex( Vector3(1, bottom_row[_x+1] * y_scale, 0) ) 
+		_surface_tool.set_color(Color(bottom_row[_x+1],bottom_row[_x+1],bottom_row[_x+1],1))
+		_surface_tool.add_vertex( Vector3(_x+1, bottom_row[_x+1] * y_scale, z_grid_position) ) 
 		# vertex 1,1 = top-right
 		_surface_tool.set_uv( Vector2(1, 1) )
-		_surface_tool.add_vertex( Vector3(1, top_row[_x+1] * y_scale, 1) ) 
+		_surface_tool.set_color(Color(top_row[_x+1],top_row[_x+1],top_row[_x+1],1))
+		_surface_tool.add_vertex( Vector3(_x+1, top_row[_x+1] * y_scale, z_grid_position+1) ) 
 		# vertex 0,1 = top-left
 		_surface_tool.set_uv( Vector2(0, 1) )
-		_surface_tool.add_vertex( Vector3(0, top_row[_x] * y_scale, 1) ) 
-		# make the fir_surface_tool triangle
-		_surface_tool.add_index(0) 
-		_surface_tool.add_index(1)
-		_surface_tool.add_index(2)
-		# make the second triangle
-		_surface_tool.add_index(0) 
-		_surface_tool.add_index(2)
-		_surface_tool.add_index(3)
+		_surface_tool.set_color(Color(top_row[_x],top_row[_x],top_row[_x],1))
+		_surface_tool.add_vertex( Vector3(_x, top_row[_x] * y_scale, z_grid_position+1) ) 
 		
-		_surface_tool.generate_normals() # normals point perpendicular up from each face
-		var _mesh = _surface_tool.commit() # arranges mesh data structures into arrays for us
-		
-		_land.mesh = _mesh
-		var _height_colour_material = StandardMaterial3D.new()
-		_height_colour_material.albedo_color = Color(top_row[_x],top_row[_x],top_row[_x],1)
-		
-		_land.mesh.surface_set_material(0,_height_colour_material)
-		_land.position = Vector3(_x,0,z_grid_position)
-		
-		node_landscape.add_child(_land)
+		_column_index += 4
+		# first triangle
+		_surface_tool.add_index(_column_index-4)
+		_surface_tool.add_index(_column_index-3)
+		_surface_tool.add_index(_column_index-2)
+		# second triangle
+		_surface_tool.add_index(_column_index-4)
+		_surface_tool.add_index(_column_index-2)
+		_surface_tool.add_index(_column_index-1)
+	
+	_surface_tool.generate_normals() # normals point perpendicular up from each face
+	var _mesh = _surface_tool.commit() # arranges mesh data structures into arrays for us
+	
+	_land.mesh = _mesh
+	_land.material_override = landscape_material
+	
+	node_landscape.add_child(_land)
 
 func create_height_map() -> Image:
 	# goal: long, thin cells.
